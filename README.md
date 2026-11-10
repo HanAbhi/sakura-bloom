@@ -69,3 +69,4 @@ node scripts/verify-qr-suite.mjs
 - **QR Code / Tap to see QR code**: Returns smoothly to the scannable digital seed state.
 - **Download**: Opens modal to download a 1024×1024 high-resolution PNG.
 - **Share**: Copies the link or triggers the native Web Share API.
+
