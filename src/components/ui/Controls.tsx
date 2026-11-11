@@ -15,6 +15,7 @@ interface ControlsProps {
   onResetToQR: () => void;
   onTapGrow: () => void;
   isGrowing: boolean;
+  guestMode?: boolean;
 }
 
 export function Controls({
@@ -27,6 +28,7 @@ export function Controls({
   onResetToQR,
   onTapGrow,
   isGrowing,
+  guestMode = false,
 }: ControlsProps) {
   const isQR = stage === SakuraStage.QR_IDLE;
   const isFullBloom = stage === SakuraStage.FULL_BLOOM;
@@ -45,7 +47,7 @@ export function Controls({
         </button>
       )}
 
-      {isFullBloom && (
+      {isFullBloom && !guestMode && (
         <button
           onClick={onResetToQR}
           className="px-6 py-2.5 bg-white/90 hover:bg-white text-sakura-plum font-sans font-medium text-sm rounded-full shadow-zen hover:shadow-zen-lg border border-sakura-blush/60 transition-all flex items-center gap-2 active:scale-95"
@@ -130,7 +132,7 @@ export function Controls({
         </button>
 
         {/* Return to QR code if in tree mode */}
-        {!isQR && (
+        {!isQR && !guestMode && (
           <button
             type="button"
             onClick={onResetToQR}

@@ -13,6 +13,7 @@ interface QRObjectProps {
   activationProgress: number; // 0 to 1
   germinationProgress: number; // 0 to 1
   onTapGrow: () => void;
+  guestMode?: boolean;
 }
 
 export function QRObject({
@@ -22,6 +23,7 @@ export function QRObject({
   activationProgress,
   germinationProgress,
   onTapGrow,
+  guestMode = false,
 }: QRObjectProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const particlesRef = useRef<THREE.Points>(null);
@@ -146,7 +148,10 @@ export function QRObject({
   // Click on QR code handler: Opens target URL (e.g. Ocha Party website)
   const handleQRClick = (e: any) => {
     e.stopPropagation();
-    if (stage === SakuraStage.QR_IDLE && targetUrl) {
+    if (stage !== SakuraStage.QR_IDLE) return;
+    if (guestMode) {
+      onTapGrow();
+    } else if (targetUrl) {
       window.open(targetUrl, '_blank', 'noopener,noreferrer');
     }
   };

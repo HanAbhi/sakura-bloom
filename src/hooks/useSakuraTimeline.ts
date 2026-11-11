@@ -110,6 +110,16 @@ export function useSakuraTimeline() {
     }, 150);
   }, [triggerGrow]);
 
+  // Jump straight to full bloom with no growth animation (used for "Reduce motion")
+  const bloomNow = useCallback(() => {
+    if (timelineRef.current) timelineRef.current.kill();
+    progressObj.current.value = 1.0;
+    setGlobalProgress(1.0);
+    setStage(SakuraStage.FULL_BLOOM);
+    setIsPlaying(false);
+    zenAudio.playChime(880.0, 5.0);
+  }, []);
+
   // Seek to specific stage
   const seekStage = useCallback((targetStage: SakuraStage) => {
     if (timelineRef.current) timelineRef.current.kill();
@@ -183,6 +193,7 @@ export function useSakuraTimeline() {
     triggerGrow,
     resetToQR,
     replay,
+    bloomNow,
     seekStage,
     selectSeason,
     setBlossomDensity,

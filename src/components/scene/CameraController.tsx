@@ -11,9 +11,10 @@ import { SakuraStage } from '@/lib/animation';
 interface CameraControllerProps {
   stage: SakuraStage;
   globalProgress: number; // 0 to 1
+  reducedMotion?: boolean;
 }
 
-export function CameraController({ stage, globalProgress }: CameraControllerProps) {
+export function CameraController({ stage, globalProgress, reducedMotion = false }: CameraControllerProps) {
   const { camera } = useThree();
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
@@ -90,7 +91,7 @@ export function CameraController({ stage, globalProgress }: CameraControllerProp
       minPolarAngle={0.2}
       rotateSpeed={0.65}
       zoomSpeed={0.8}
-      autoRotate={stage === SakuraStage.FULL_BLOOM}
+      autoRotate={stage === SakuraStage.FULL_BLOOM && !reducedMotion}
       autoRotateSpeed={0.35}
     />
   );

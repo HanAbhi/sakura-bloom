@@ -8,6 +8,8 @@ import { URLInput } from '@/components/ui/URLInput';
 import { Controls } from '@/components/ui/Controls';
 import { QRPanel } from '@/components/ui/QRPanel';
 import { SakuraStage } from '@/lib/animation';
+import { BloomMessage } from '@/components/ui/BloomMessage';
+import { useGuestMode, pickClosingMessage, ClosingMessage, OCHA_PARTY_URL } from '@/lib/guest';
 
 // Dynamically import 3D canvas scene with SSR disabled for optimal Three.js rendering
 const SakuraScene = dynamic(
@@ -29,6 +31,8 @@ export default function SakuraApp() {
   const [targetUrl, setTargetUrl] = useState<string>(DEFAULT_QR_URL);
   const [qrData, setQrData] = useState<QRData | null>(null);
   const [isQRModalOpen, setIsQRModalOpen] = useState<boolean>(false);
+  const { isGuest, reducedMotion, ready } = useGuestMode();
+  const [message, setMessage] = useState<ClosingMessage | null>(null);
 
   const {
     stage,
@@ -45,10 +49,39 @@ export default function SakuraApp() {
     triggerGrow,
     resetToQR,
     replay,
+    bloomNow,
     seekStage,
     selectSeason,
+    setBreezeIntensity,
     toggleSound,
   } = useSakuraTimeline();
+
+  // Guests who prefer reduced motion skip the growth animation and get a gentler breeze
+  const calmGuest = isGuest && reducedMotion;
+  const grow = calmGuest ? bloomNow : triggerGrow;
+
+  useEffect(() => {
+    if (calmGuest) setBreezeIntensity(0.4);
+  }, [calmGuest, setBreezeIntensity]);
+
+  // A new closing message each time the tree reaches full bloom (guest mode only)
+  useEffect(() => {
+    if (!isGuest) return;
+    if (stage === SakuraStage.FULL_BLOOM) {
+      setMessage((current) => current ?? pickClosingMessage());
+    } else {
+      setMessage(null);
+    }
+  }, [isGuest, stage]);
+
+  const handleReplay = useCallback(() => {
+    if (calmGuest) {
+      bloomNow();
+      setMessage(pickClosingMessage());
+    } else {
+      replay();
+    }
+  }, [calmGuest, bloomNow, replay]);
 
   // Generate QR matrix whenever targetUrl changes
   useEffect(() => {
@@ -89,45 +122,67 @@ export default function SakuraApp() {
           blossomProgress={blossomProgress}
           blossomDensity={blossomDensity}
           breezeIntensity={breezeIntensity}
-          onTapGrow={triggerGrow}
-          onTapTree={resetToQR}
+          onTapGrow={grow}
+          onTapTree={isGuest ? () => {} : resetToQR}
+          guestMode={isGuest}
+          reducedMotion={calmGuest}
         />
       </div>
 
-      {/* 2. Floating Bottom Controls & URL Input */}
-      <footer className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none flex flex-col items-center gap-2">
-        <div className="pointer-events-auto w-full">
-          <URLInput
-            currentUrl={targetUrl}
-            onUpdateUrl={handleUpdateUrl}
-            onOpenQRModal={() => setIsQRModalOpen(true)}
-            onTapGrow={triggerGrow}
-            isGrowing={isPlaying}
-          />
-        </div>
+      {/* 2. Closing message (guest mode, full bloom) */}
+      {isGuest && <BloomMessage message={message} reducedMotion={calmGuest} />}
 
-        <div className="pointer-events-auto w-full">
-          <Controls
-            stage={stage}
-            season={season}
-            soundEnabled={soundEnabled}
-            onSelectSeason={selectSeason}
-            onToggleSound={toggleSound}
-            onReplay={replay}
-            onResetToQR={resetToQR}
-            onTapGrow={triggerGrow}
-            isGrowing={isPlaying}
-          />
-        </div>
-      </footer>
+      {/* 3. Floating Bottom Controls (the URL editor and download tools are hidden for guests) */}
+      {ready && (
+        <footer className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none flex flex-col items-center gap-2">
+          {!isGuest && (
+            <div className="pointer-events-auto w-full">
+              <URLInput
+                currentUrl={targetUrl}
+                onUpdateUrl={handleUpdateUrl}
+                onOpenQRModal={() => setIsQRModalOpen(true)}
+                onTapGrow={triggerGrow}
+                isGrowing={isPlaying}
+              />
+            </div>
+          )}
+
+          <div className="pointer-events-auto w-full">
+            <Controls
+              stage={stage}
+              season={season}
+              soundEnabled={soundEnabled}
+              onSelectSeason={selectSeason}
+              onToggleSound={toggleSound}
+              onReplay={isGuest ? handleReplay : replay}
+              onResetToQR={resetToQR}
+              onTapGrow={grow}
+              isGrowing={isPlaying}
+              guestMode={isGuest}
+            />
+          </div>
+
+          {isGuest && (
+            <a
+              href={OCHA_PARTY_URL}
+              className="pointer-events-auto -mt-3 mb-4 px-3 py-2 font-serif text-xs text-zen-bark/70 underline underline-offset-4 decoration-sakura-blush hover:text-sakura-plum"
+              style={{ marginBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+            >
+              Back to the Ocha Party
+            </a>
+          )}
+        </footer>
+      )}
 
       {/* 4. High-Resolution QR Modal */}
-      <QRPanel
-        isOpen={isQRModalOpen}
-        onClose={() => setIsQRModalOpen(false)}
-        qrData={qrData}
-        targetUrl={targetUrl}
-      />
+      {!isGuest && (
+        <QRPanel
+          isOpen={isQRModalOpen}
+          onClose={() => setIsQRModalOpen(false)}
+          qrData={qrData}
+          targetUrl={targetUrl}
+        />
+      )}
     </main>
   );
 }
