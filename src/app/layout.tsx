@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Sakura — QR to Living Tree Experience',
-  description: 'An interactive 3D Japanese garden experience where a QR code blossoms into a living Yoshino cherry tree.',
+  title: 'Sakura — Ocha Party',
+  description: 'A tiny sakura seed grows into a cherry tree in full bloom, with a little message waiting for you.',
 };
 
 export default function RootLayout({

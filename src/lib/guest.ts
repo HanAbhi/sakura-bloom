@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-/** Where the "Back to the Ocha Party" link goes in guest mode. */
+/** Where the "Back to the Ocha Party" link goes. */
 export const OCHA_PARTY_URL = 'https://njcsb-ocha-party.netlify.app';
 
 export interface ClosingMessage {
@@ -12,7 +12,7 @@ export interface ClosingMessage {
 }
 
 /**
- * Shown when the tree reaches full bloom in guest mode (one picked at random).
+ * Shown when the tree reaches full bloom (one picked at random).
  * Written so they read well both before and after the event.
  */
 export const CLOSING_MESSAGES: ClosingMessage[] = [
@@ -50,23 +50,17 @@ export function pickClosingMessage(): ClosingMessage {
   return CLOSING_MESSAGES[i];
 }
 
-/**
- * Guest mode is switched on by adding ?guest to the URL.
- * `ready` stays false until the browser has been checked, so the
- * normal editing tools never flash on screen for guests.
- */
-export function useGuestMode() {
-  const [state, setState] = useState({ isGuest: false, reducedMotion: false, ready: false });
+/** Tracks the visitor's "reduce motion" setting, updating live if it changes. */
+export function useReducedMotion() {
+  const [reduced, setReduced] = useState(false);
 
   useEffect(() => {
-    const isGuest = new URLSearchParams(window.location.search).has('guest');
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setState({ isGuest, reducedMotion: mq.matches, ready: true });
-
-    const onChange = () => setState((s) => ({ ...s, reducedMotion: mq.matches }));
+    setReduced(mq.matches);
+    const onChange = () => setReduced(mq.matches);
     mq.addEventListener?.('change', onChange);
     return () => mq.removeEventListener?.('change', onChange);
   }, []);
 
-  return state;
+  return reduced;
 }

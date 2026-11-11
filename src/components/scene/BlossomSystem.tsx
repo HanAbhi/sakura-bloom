@@ -19,7 +19,7 @@ interface BlossomSystemProps {
   blossomProgress: number; // 0.0 to 1.0 (unfolding)
   blossomDensity: number; // 0.5 to 2.0
   breezeIntensity: number; // 0.5 to 3.0
-  treeSway: { x: number; z: number };
+  treeSway: React.MutableRefObject<{ x: number; z: number }>;
 }
 
 /**
@@ -214,8 +214,8 @@ export function BlossomSystem({
 
       // Height-based tree sway
       const heightRatio = Math.max(0, pt.position.y / 3.5);
-      const swayX = treeSway.x * heightRatio * 0.45;
-      const swayZ = treeSway.z * heightRatio * 0.45;
+      const swayX = treeSway.current.x * heightRatio * 0.45;
+      const swayZ = treeSway.current.z * heightRatio * 0.45;
 
       dummy.position.set(
         pt.position.x + swayX,

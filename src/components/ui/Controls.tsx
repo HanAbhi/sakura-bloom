@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Volume2, VolumeX, RotateCcw, QrCode, Flower2, Wind, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, RotateCcw, Flower2, Wind, Sparkles } from 'lucide-react';
 import { SakuraStage } from '@/lib/animation';
 import { SeasonMode } from '@/hooks/useSakuraTimeline';
 
@@ -12,10 +12,9 @@ interface ControlsProps {
   onSelectSeason: (season: SeasonMode) => void;
   onToggleSound: () => void;
   onReplay: () => void;
-  onResetToQR: () => void;
   onTapGrow: () => void;
   isGrowing: boolean;
-  guestMode?: boolean;
+  reducedMotion?: boolean;
 }
 
 export function Controls({
@@ -25,35 +24,23 @@ export function Controls({
   onSelectSeason,
   onToggleSound,
   onReplay,
-  onResetToQR,
   onTapGrow,
   isGrowing,
-  guestMode = false,
+  reducedMotion = false,
 }: ControlsProps) {
-  const isQR = stage === SakuraStage.QR_IDLE;
-  const isFullBloom = stage === SakuraStage.FULL_BLOOM;
+  const isSeed = stage === SakuraStage.SEED;
 
   return (
     <div className="flex flex-col items-center gap-3 w-full max-w-xl mx-auto px-4 pb-6">
       {/* 1. Interactive Center Action Pill */}
-      {isQR && (
+      {isSeed && (
         <button
           onClick={onTapGrow}
           disabled={isGrowing}
-          className="group px-6 py-2.5 bg-white/90 hover:bg-white text-sakura-rose hover:text-sakura-plum font-sans font-medium text-sm rounded-full shadow-zen hover:shadow-zen-lg border border-sakura-blush/60 transition-all flex items-center gap-2 animate-pulse hover:animate-none active:scale-95"
+          className={`group px-6 py-2.5 bg-white/90 hover:bg-white text-sakura-rose hover:text-sakura-plum font-sans font-medium text-sm rounded-full shadow-zen hover:shadow-zen-lg border border-sakura-blush/60 transition-all flex items-center gap-2 ${reducedMotion ? '' : 'animate-pulse hover:animate-none'} active:scale-95`}
         >
           <Sparkles className="w-4 h-4 text-sakura-rose group-hover:rotate-12 transition-transform" />
           <span>Tap to see the tree</span>
-        </button>
-      )}
-
-      {isFullBloom && !guestMode && (
-        <button
-          onClick={onResetToQR}
-          className="px-6 py-2.5 bg-white/90 hover:bg-white text-sakura-plum font-sans font-medium text-sm rounded-full shadow-zen hover:shadow-zen-lg border border-sakura-blush/60 transition-all flex items-center gap-2 active:scale-95"
-        >
-          <QrCode className="w-4 h-4 text-sakura-rose" />
-          <span>Tap to see QR code</span>
         </button>
       )}
 
@@ -108,6 +95,7 @@ export function Controls({
           type="button"
           onClick={onToggleSound}
           title={soundEnabled ? 'Mute Zen Audio' : 'Play Ambient Wind & Chimes'}
+          aria-label={soundEnabled ? 'Mute sound' : 'Play sound'}
           className={`p-2 rounded-full transition-all ${
             soundEnabled
               ? 'text-sakura-plum bg-sakura-light ring-1 ring-sakura-blush/60'
@@ -125,23 +113,12 @@ export function Controls({
         <button
           type="button"
           onClick={onReplay}
-          title="Replay QR-to-Tree Awakening"
+          title="Replay from the seed"
+          aria-label="Replay from the seed"
           className="p-2 text-zen-stone hover:text-sakura-plum hover:bg-sakura-light/40 rounded-full transition-all active:rotate-180"
         >
           <RotateCcw className="w-4 h-4" />
         </button>
-
-        {/* Return to QR code if in tree mode */}
-        {!isQR && !guestMode && (
-          <button
-            type="button"
-            onClick={onResetToQR}
-            title="Return to Scannable QR Code"
-            className="p-2 text-zen-stone hover:text-sakura-plum hover:bg-sakura-light/40 rounded-full transition-all"
-          >
-            <QrCode className="w-4 h-4" />
-          </button>
-        )}
       </div>
     </div>
   );

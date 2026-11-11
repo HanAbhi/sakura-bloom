@@ -185,9 +185,9 @@ export function PetalSystem({ stage, breezeIntensity, blossomProgress }: PetalSy
     const time = state.clock.getElapsedTime();
     const dummy = new THREE.Object3D();
 
-    // In Stage 0 (QR Idle): 15% gentle drift
+    // In Stage 0 (Seed): gentle drift
     // In Stage 4-5: Full bloom breeze
-    const activeMultiplier = stage === SakuraStage.QR_IDLE ? 0.2 : 0.25 + blossomProgress * 0.75;
+    const activeMultiplier = stage === SakuraStage.SEED ? 0.2 : 0.25 + blossomProgress * 0.75;
 
     // 1. Foreground Petals
     if (fgMeshRef.current) {
@@ -295,7 +295,7 @@ export function PetalSystem({ stage, breezeIntensity, blossomProgress }: PetalSy
 
     // 4. Settled Ground Petals
     if (settledMeshRef.current) {
-      const countVisible = stage !== SakuraStage.QR_IDLE
+      const countVisible = stage !== SakuraStage.SEED
         ? Math.floor(settledCount * Math.min(1.0, 0.2 + blossomProgress * 0.8))
         : 18;
 

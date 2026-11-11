@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BlossomPoint } from './BlossomSystem';
 import { createBarkTextures } from '@/lib/textures';
@@ -9,7 +10,7 @@ interface TreeGrowthProps {
   germinationProgress: number; // 0.0 to 1.0
   growthProgress: number; // 0.0 to 1.0
   breezeIntensity: number;
-  treeSway: { x: number; z: number };
+  treeSway: React.MutableRefObject<{ x: number; z: number }>;
 }
 
 interface BranchDef {
@@ -368,6 +369,48 @@ export function TreeGrowth({
     });
   }, [barkMap, barkBump, barkRough]);
 
+  // Branch geometry only depends on growth, so it is rebuilt while the tree grows
+  // and then reused every frame (the old geometry is freed each time).
+  const branchGeos = useMemo(
+    () =>
+      branches.map((b) => {
+        const localProgress = THREE.MathUtils.clamp(
+          (growthProgress - b.growthStart) / (b.growthEnd - b.growthStart),
+          0,
+          1
+        );
+        if (growthProgress <= 0.01 || localProgress <= 0.001) return null;
+        return createOrganicBranchGeometry(
+          b.curve,
+          b.radiusStart,
+          b.radiusEnd,
+          localProgress,
+          b.isTrunk ? 20 : 12,
+          b.isTrunk
+        );
+      }),
+    [branches, growthProgress]
+  );
+  useEffect(() => () => branchGeos.forEach((g) => g?.dispose()), [branchGeos]);
+
+  // How strongly each branch follows the canopy sway (higher branches sway more)
+  const branchSwayFactors = useMemo(
+    () => branches.map((b) => Math.max(0, b.curve.getPoint(1).y / 3.5) * 0.4),
+    [branches]
+  );
+  const branchRefs = useRef<(THREE.Mesh | null)[]>([]);
+
+  // Apply soft branch sway without re-rendering React
+  useFrame(() => {
+    const { x, z } = treeSway.current;
+    for (let i = 0; i < branchRefs.current.length; i++) {
+      const mesh = branchRefs.current[i];
+      if (!mesh) continue;
+      mesh.position.x = x * branchSwayFactors[i];
+      mesh.position.z = z * branchSwayFactors[i];
+    }
+  });
+
   // Sapling shoot material for germination
   const saplingMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
@@ -414,43 +457,20 @@ export function TreeGrowth({
       )}
 
       {/* 2. Stage 3 (Tree Growth & Beyond): Tapered Organic Trunk & Branch System */}
-      {growthProgress > 0.01 &&
-        branches.map((b, idx) => {
-          const localProgress = THREE.MathUtils.clamp(
-            (growthProgress - b.growthStart) / (b.growthEnd - b.growthStart),
-            0,
-            1
-          );
-
-          if (localProgress <= 0.001) return null;
-
-          // Generate organic tapered geometry with bark grooves
-          const branchGeo = createOrganicBranchGeometry(
-            b.curve,
-            b.radiusStart,
-            b.radiusEnd,
-            localProgress,
-            b.isTrunk ? 20 : 12,
-            b.isTrunk
-          );
-
-          // Apply soft branch sway
-          const tipPoint = b.curve.getPoint(1);
-          const heightRatio = Math.max(0, tipPoint.y / 3.5);
-          const swayX = treeSway.x * heightRatio * 0.4;
-          const swayZ = treeSway.z * heightRatio * 0.4;
-
-          return (
-            <mesh
-              key={`branch-${idx}`}
-              geometry={branchGeo}
-              material={barkMaterial}
-              position={[swayX, 0, swayZ]}
-              castShadow
-              receiveShadow
-            />
-          );
-        })}
+      {branchGeos.map((geo, idx) =>
+        geo ? (
+          <mesh
+            key={`branch-${idx}`}
+            ref={(m) => {
+              branchRefs.current[idx] = m;
+            }}
+            geometry={geo}
+            material={barkMaterial}
+            castShadow
+            receiveShadow
+          />
+        ) : null
+      )}
     </group>
   );
 }

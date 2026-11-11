@@ -52,3 +52,7 @@ body {
 }
 .bloom-message { animation: bloom-message-in 1.1s cubic-bezier(.22, .7, .2, 1) .6s both; }
 .bloom-message-calm { animation: bloom-message-fade .2s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse, .animate-spin { animation-duration: 3s; }
+}

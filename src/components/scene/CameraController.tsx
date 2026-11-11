@@ -25,8 +25,8 @@ export function CameraController({ stage, globalProgress, reducedMotion = false 
 
   // Update target coordinates based on stage & growth progress
   useEffect(() => {
-    if (stage === SakuraStage.QR_IDLE) {
-      // Intimate, scannable overhead angle for QR code
+    if (stage === SakuraStage.SEED) {
+      // Intimate overhead angle on the dormant seed
       gsap.to(targetCamPos.current, {
         x: 0,
         y: 3.6,

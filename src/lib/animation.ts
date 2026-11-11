@@ -1,6 +1,6 @@
 export enum SakuraStage {
-  QR_IDLE = 0,         // Stage 0: Initial scene with functional QR code
-  ACTIVATION = 1,      // Stage 1: QR emits pink glow, dissolves into particles converging
+  SEED = 0,            // Stage 0: Dormant glowing seed resting on the garden plinth
+  ACTIVATION = 1,      // Stage 1: Seed glows, sakura energy swirls in and converges
   GERMINATION = 2,     // Stage 2: Central glowing seed, roots emerging, tiny stem shooting up
   TREE_GROWTH = 3,     // Stage 3: Trunk growing, twisting, bark forming, branches spreading
   BLOSSOMING = 4,      // Stage 4: Flower buds popping, 5-petal blossoms unfolding
@@ -18,13 +18,13 @@ export interface TimelineState {
 }
 
 export const STAGE_DESCRIPTIONS: Record<SakuraStage, { title: string; subtitle: string }> = {
-  [SakuraStage.QR_IDLE]: {
-    title: 'The Digital Seed',
-    subtitle: 'Scan with your camera or tap to awaken the tree',
+  [SakuraStage.SEED]: {
+    title: 'The Sleeping Seed',
+    subtitle: 'Tap to awaken the tree',
   },
   [SakuraStage.ACTIVATION]: {
-    title: 'Digital Dissolution',
-    subtitle: 'QR modules dissolve into glowing sakura energy',
+    title: 'Awakening',
+    subtitle: 'Glowing sakura energy gathers into the seed',
   },
   [SakuraStage.GERMINATION]: {
     title: 'The Sprouting Seed',

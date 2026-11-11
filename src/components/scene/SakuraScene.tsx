@@ -4,16 +4,13 @@ import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { GardenPlatform } from './GardenPlatform';
-import { QRObject } from './QRObject';
+import { SeedObject } from './SeedObject';
 import { SakuraTree } from './SakuraTree';
 import { PetalSystem } from './PetalSystem';
 import { CameraController } from './CameraController';
-import { QRData } from '@/lib/qr';
 import { SakuraStage } from '@/lib/animation';
 
 interface SakuraSceneProps {
-  qrData: QRData | null;
-  targetUrl: string;
   stage: SakuraStage;
   globalProgress: number;
   activationProgress: number;
@@ -23,14 +20,10 @@ interface SakuraSceneProps {
   blossomDensity: number;
   breezeIntensity: number;
   onTapGrow: () => void;
-  onTapTree: () => void;
-  guestMode?: boolean;
   reducedMotion?: boolean;
 }
 
 export function SakuraScene({
-  qrData,
-  targetUrl,
   stage,
   globalProgress,
   activationProgress,
@@ -40,18 +33,16 @@ export function SakuraScene({
   blossomDensity,
   breezeIntensity,
   onTapGrow,
-  onTapTree,
-  guestMode = false,
   reducedMotion = false,
 }: SakuraSceneProps) {
-  // Guests are mostly on phones: render at a slightly lower resolution with a smaller shadow map
-  const shadowSize = guestMode ? 1024 : 2048;
+  // Guests are mostly on phones: cap the pixel ratio and use a modest shadow map
+  const shadowSize = 1024;
   return (
     <div className="relative w-full h-full select-none">
       <Canvas
         shadows={{ type: THREE.PCFSoftShadowMap }}
         camera={{ position: [0, 3.6, 3.2], fov: 45, near: 0.1, far: 50 }}
-        dpr={guestMode ? [1, 1.5] : [1, 2]}
+        dpr={[1, 1.5]}
         gl={{
           antialias: true,
           alpha: false,
@@ -109,15 +100,13 @@ export function SakuraScene({
             {/* 1. Japanese Garden Platform & Zen Raked Sand */}
             <GardenPlatform growthProgress={growthProgress} />
 
-            {/* 2. Interactive Scannable 3D QR Code Plinth */}
-            <QRObject
-              qrData={qrData}
-              targetUrl={targetUrl}
+            {/* 2. The Dormant Sakura Seed */}
+            <SeedObject
               stage={stage}
               activationProgress={activationProgress}
               germinationProgress={germinationProgress}
               onTapGrow={onTapGrow}
-              guestMode={guestMode}
+              reducedMotion={reducedMotion}
             />
 
             {/* 3. The Living Botanically Detailed Sakura Tree */}
@@ -128,7 +117,6 @@ export function SakuraScene({
               blossomProgress={blossomProgress}
               blossomDensity={blossomDensity}
               breezeIntensity={breezeIntensity}
-              onTapTree={onTapTree}
             />
 
             {/* 4. Delicate 3-Layer Spatial Petal Simulation */}

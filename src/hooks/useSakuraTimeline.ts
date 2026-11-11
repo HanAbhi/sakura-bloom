@@ -8,7 +8,7 @@ import { zenAudio } from '@/lib/audio';
 export type SeasonMode = 'spring' | 'bloom' | 'breeze';
 
 export function useSakuraTimeline() {
-  const [stage, setStage] = useState<SakuraStage>(SakuraStage.QR_IDLE);
+  const [stage, setStage] = useState<SakuraStage>(SakuraStage.SEED);
   const [globalProgress, setGlobalProgress] = useState<number>(0);
   const [season, setSeason] = useState<SeasonMode>('spring');
   const [blossomDensity, setBlossomDensity] = useState<number>(1.0);
@@ -37,7 +37,7 @@ export function useSakuraTimeline() {
 
   const updateStageFromProgress = useCallback((val: number) => {
     if (val < 0.05) {
-      setStage(SakuraStage.QR_IDLE);
+      setStage(SakuraStage.SEED);
     } else if (val < 0.25) {
       setStage(SakuraStage.ACTIVATION);
     } else if (val < 0.45) {
@@ -76,35 +76,12 @@ export function useSakuraTimeline() {
     });
   }, [updateStageFromProgress]);
 
-  // Return to QR Code: Smooth 2.5s reversal
-  const resetToQR = useCallback(() => {
-    if (timelineRef.current) timelineRef.current.kill();
-    setIsPlaying(true);
-
-    zenAudio.playChime(523.25, 2.5);
-
-    timelineRef.current = gsap.to(progressObj.current, {
-      value: 0.0,
-      duration: 2.8,
-      ease: 'power2.out',
-      onUpdate: () => {
-        const val = progressObj.current.value;
-        setGlobalProgress(val);
-        updateStageFromProgress(val);
-      },
-      onComplete: () => {
-        setIsPlaying(false);
-        setStage(SakuraStage.QR_IDLE);
-      },
-    });
-  }, [updateStageFromProgress]);
-
   // Replay: Rewind to 0 and immediately grow
   const replay = useCallback(() => {
     if (timelineRef.current) timelineRef.current.kill();
     progressObj.current.value = 0;
     setGlobalProgress(0);
-    setStage(SakuraStage.QR_IDLE);
+    setStage(SakuraStage.SEED);
     setTimeout(() => {
       triggerGrow();
     }, 150);
@@ -125,7 +102,7 @@ export function useSakuraTimeline() {
     if (timelineRef.current) timelineRef.current.kill();
     let targetProgress = 0;
     switch (targetStage) {
-      case SakuraStage.QR_IDLE: targetProgress = 0.0; break;
+      case SakuraStage.SEED: targetProgress = 0.0; break;
       case SakuraStage.ACTIVATION: targetProgress = 0.15; break;
       case SakuraStage.GERMINATION: targetProgress = 0.35; break;
       case SakuraStage.TREE_GROWTH: targetProgress = 0.60; break;
@@ -191,7 +168,6 @@ export function useSakuraTimeline() {
     soundEnabled,
     isPlaying,
     triggerGrow,
-    resetToQR,
     replay,
     bloomNow,
     seekStage,

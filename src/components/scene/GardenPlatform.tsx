@@ -88,7 +88,7 @@ export function GardenPlatform({ growthProgress }: GardenPlatformProps) {
         />
       </mesh>
 
-      {/* 5. Center Raised Plinth (Refined Warm Ivory Stone Surface for QR Code) */}
+      {/* 5. Center Raised Plinth (Refined Warm Ivory Stone Surface for the Seed) */}
       <mesh position={[0, 0.01, 0]} receiveShadow>
         <cylinderGeometry args={[2.08, 2.1, 0.04, 64]} />
         <meshStandardMaterial

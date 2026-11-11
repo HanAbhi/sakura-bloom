@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { TreeGrowth, useTreeStructure } from './TreeGrowth';
 import { BlossomSystem } from './BlossomSystem';
@@ -13,8 +13,9 @@ interface SakuraTreeProps {
   blossomProgress: number; // 0 to 1
   blossomDensity: number;
   breezeIntensity: number;
-  onTapTree?: () => void;
 }
+
+export type TreeSway = { x: number; z: number };
 
 export function SakuraTree({
   stage,
@@ -23,10 +24,10 @@ export function SakuraTree({
   blossomProgress,
   blossomDensity,
   breezeIntensity,
-  onTapTree,
 }: SakuraTreeProps) {
   const { blossomPoints } = useTreeStructure();
-  const [treeSway, setTreeSway] = useState<{ x: number; z: number }>({ x: 0, z: 0 });
+  // Sway lives in a ref (not state) so the tree is not re-rendered every frame
+  const treeSway = useRef<TreeSway>({ x: 0, z: 0 });
 
   // Harmonic spring wind simulation for the tree canopy
   useFrame((state) => {
@@ -37,20 +38,12 @@ export function SakuraTree({
     const swayZ =
       (Math.cos(time * 1.5) * 0.07 + Math.cos(time * 2.8) * 0.03) * breezeIntensity;
 
-    setTreeSway({ x: swayX, z: swayZ });
+    treeSway.current.x = swayX;
+    treeSway.current.z = swayZ;
   });
 
   return (
-    <group
-      position={[0, 0, 0]}
-      onClick={(e) => {
-        // If in full bloom, tapping the tree can trigger camera focus or return to QR
-        if (stage === SakuraStage.FULL_BLOOM && onTapTree) {
-          e.stopPropagation();
-          onTapTree();
-        }
-      }}
-    >
+    <group position={[0, 0, 0]}>
       {/* 1. Trunk, Buttress Roots, and Fractal Branch Architecture */}
       <TreeGrowth
         germinationProgress={germinationProgress}
